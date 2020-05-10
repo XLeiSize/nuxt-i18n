@@ -138,20 +138,9 @@ describe('basic', () => {
   })
 
   test('/notlocalized & /fr/fr/notlocalized return 404', async () => {
-    let response
-    try {
-      response = await get('/notlocalized')
-    } catch (error) {
-      response = error
-    }
-    expect(response.statusCode).toBe(404)
-
-    try {
-      response = await get('/fr/fr/notlocalized')
-    } catch (error) {
-      response = error
-    }
-    expect(response.statusCode).toBe(404)
+    expect.assertions(2)
+    await get('/notlocalized').catch(error => expect(error.statusCode).toBe(404))
+    await get('/fr/fr/notlocalized').catch(error => expect(error.statusCode).toBe(404))
   })
 
   test('route specifies options with non-supported locale', async () => {
@@ -168,9 +157,8 @@ describe('basic', () => {
     const getElements = () => {
       const dom = getDom(html)
       title = dom.querySelector('h1')
-      const links = [...dom.querySelectorAll('a')]
-      langSwitcherLink = links[0]
-      link = links[1]
+      langSwitcherLink = dom.querySelector('#lang-switcher a')
+      link = dom.querySelector('#post-link')
     }
 
     test('/posts contains EN text, link to /fr/articles/ & link to /posts/my-post', async () => {
@@ -227,10 +215,10 @@ describe('basic', () => {
   test('navigates to child route with nameless parent and checks path to other locale', async () => {
     const window = await nuxt.renderAndGetWindow(url('/posts'))
 
-    const links = window.document.querySelectorAll('a')
-    expect(links.length).toBe(2)
-    expect(links[0].getAttribute('href')).toEqual('/fr/articles/')
-    expect(links[1].getAttribute('href')).toEqual('/posts/my-post')
+    const langSwitcherLink = window.document.querySelector('#lang-switcher a')
+    const link = window.document.querySelector('#post-link')
+    expect(langSwitcherLink.getAttribute('href')).toEqual('/fr/articles/')
+    expect(link.getAttribute('href')).toEqual('/posts/my-post')
   })
 
   test('navigates to dynamic child route and checks path to other locale', async () => {
@@ -834,6 +822,78 @@ describe('with router base', () => {
   })
 })
 
+describe('baseUrl', () => {
+  let nuxt
+
+  beforeAll(async () => {
+    const override = {
+      i18n: {
+        strategy: 'prefix_and_default',
+        baseUrl: (context) => {
+          if (process.server) {
+            return context.req.headers['x-override-base-url']
+          }
+        }
+      }
+    }
+
+    nuxt = (await setup(loadConfig(__dirname, 'basic', override, { merge: true }))).nuxt
+  })
+
+  afterAll(async () => {
+    await nuxt.close()
+  })
+
+  test('evaluates baseUrl function correctly', async () => {
+    const requestOptions = {
+      headers: {
+        'X-Override-Base-Url': 'CUSTOM'
+      }
+    }
+    const html = await get('/?noncanonical', requestOptions)
+    const dom = getDom(html)
+    const seoTags = getSeoTags(dom)
+
+    const expectedSeoTags = [
+      {
+        tagName: 'meta',
+        property: 'og:locale',
+        content: 'en'
+      },
+      {
+        tagName: 'meta',
+        property: 'og:locale:alternate',
+        content: 'fr_FR'
+      },
+      {
+        tagName: 'link',
+        rel: 'alternate',
+        href: 'CUSTOM/?noncanonical',
+        hreflang: 'en'
+      },
+      {
+        tagName: 'link',
+        rel: 'alternate',
+        href: 'CUSTOM/fr?noncanonical',
+        hreflang: 'fr'
+      },
+      {
+        tagName: 'link',
+        rel: 'alternate',
+        href: 'CUSTOM/fr?noncanonical',
+        hreflang: 'fr-FR'
+      },
+      {
+        tagName: 'link',
+        rel: 'canonical',
+        href: 'CUSTOM/?noncanonical' // TODO: This seems broken. Should not include query.
+      }
+    ]
+
+    expect(seoTags).toEqual(expectedSeoTags)
+  })
+})
+
 describe('differentDomains enabled', () => {
   let nuxt
 
@@ -878,8 +938,8 @@ describe('differentDomains enabled', () => {
     }
     const html = await get('/', requestOptions)
     const dom = getDom(html)
-    await expect(dom.querySelector('body').textContent).toContain('page: Homepage')
-    await expect(dom.querySelector('head meta[property="og-locale"]')).toBe(null)
+    expect(dom.querySelector('body').textContent).toContain('page: Homepage')
+    expect(dom.querySelector('head meta[property="og-locale"]')).toBe(null)
   })
 
   test('host matches locale\'s domain (fr)', async () => {
@@ -890,7 +950,7 @@ describe('differentDomains enabled', () => {
     }
     const html = await get('/', requestOptions)
     const dom = getDom(html)
-    await expect(dom.querySelector('body').textContent).toContain('page: Accueil')
+    expect(dom.querySelector('body').textContent).toContain('page: Accueil')
   })
 
   test('x-forwarded-host does not match locale\'s domain', async () => {
@@ -902,7 +962,7 @@ describe('differentDomains enabled', () => {
     const html = await get('/', requestOptions)
     const dom = getDom(html)
     // Falls back to english.
-    await expect(dom.querySelector('body').textContent).toContain('page: Homepage')
+    expect(dom.querySelector('body').textContent).toContain('page: Homepage')
   })
 
   test('x-forwarded-host does match locale\'s domain (fr)', async () => {
@@ -913,7 +973,7 @@ describe('differentDomains enabled', () => {
     }
     const html = await get('/', requestOptions)
     const dom = getDom(html)
-    await expect(dom.querySelector('body').textContent).toContain('page: Accueil')
+    expect(dom.querySelector('body').textContent).toContain('page: Accueil')
   })
 })
 
@@ -1043,5 +1103,66 @@ describe('vuex disabled', () => {
   test('navigates to route with correct locale', async () => {
     expect(getDom(await get('/')).querySelector('#current-locale').textContent).toBe('locale: en')
     expect(getDom(await get('/fr')).querySelector('#current-locale').textContent).toBe('locale: fr')
+  })
+})
+
+describe('no_prefix + detectBrowserLanguage + alwaysRedirect', () => {
+  let nuxt
+
+  beforeAll(async () => {
+    const override = {
+      i18n: {
+        strategy: 'no_prefix',
+        detectBrowserLanguage: {
+          alwaysRedirect: true
+        }
+      }
+    }
+
+    nuxt = (await setup(loadConfig(__dirname, 'basic', override, { merge: true }))).nuxt
+  })
+
+  afterAll(async () => {
+    await nuxt.close()
+  })
+
+  test('fallbacks to default locale with invalid locale cookie', async () => {
+    const requestOptions = {
+      headers: {
+        Cookie: 'i18n_redirected=invalid'
+      }
+    }
+    const html = await get('/', requestOptions)
+    const dom = getDom(html)
+    expect(dom.querySelector('#current-locale').textContent).toBe('locale: en')
+  })
+})
+
+describe('prefix + detectBrowserLanguage + alwaysRedirect', () => {
+  let nuxt
+
+  beforeAll(async () => {
+    const override = {
+      i18n: {
+        defaultLocale: 'fr',
+        strategy: 'prefix',
+        detectBrowserLanguage: {
+          useCookie: true,
+          alwaysRedirect: true
+        }
+      }
+    }
+
+    nuxt = (await setup(loadConfig(__dirname, 'basic', override, { merge: true }))).nuxt
+  })
+
+  afterAll(async () => {
+    await nuxt.close()
+  })
+
+  test('redirects to defaultLocale on navigating to root (non-existant) route', async () => {
+    const html = await get('/')
+    const dom = getDom(html)
+    expect(dom.querySelector('#current-locale').textContent).toBe('locale: fr')
   })
 })

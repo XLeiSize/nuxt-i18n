@@ -1,5 +1,6 @@
 import VueI18n from 'vue-i18n'
 import { MetaInfo } from 'vue-meta'
+import { Context as NuxtContext } from '@nuxt/types'
 
 /**
  * The nuxt-i18n types namespace
@@ -48,7 +49,7 @@ declare namespace NuxtVueI18n {
     // options that are also exposed on VueI18n instance: https://goo.gl/UwNfZo
     interface NuxtI18nInterface {
       beforeLanguageSwitch?: (oldLocale: string, newLocale: string) => void
-      defaultLocale?: null | Locale
+      defaultLocale?: Locale
       locales?: Array<Locale | LocaleObject>
       differentDomains?: boolean
       forwardedHost?: boolean
@@ -57,7 +58,7 @@ declare namespace NuxtVueI18n {
 
     // see options reference: https://github.com/nuxt-community/nuxt-i18n/blob/master/docs/options-reference.md
     interface AllOptionsInterface extends NuxtI18nInterface {
-      baseUrl?: string
+      baseUrl?: string | ((context: NuxtContext) => string)
       detectBrowserLanguage?: DetectBrowserLanguageInterface
       encodePaths?: boolean
       langDir?: string | null
