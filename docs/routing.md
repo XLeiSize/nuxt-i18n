@@ -66,8 +66,8 @@ This strategy combines both previous strategies behaviours, meaning that you wil
 
 ### Configuration
 
-To configure the strategy, use the `strategy` option.
-Make sure that you have a `defaultLocale` defined, especially if using **prefix_except_default**, **prefix_and_default** or **no_prefix** strategy. For other strategies it's also recommended to set it as it's gonna be used as a fallback when attempting to redirect from 404 page.
+To configure the strategy, use the `strategy` option. Make sure that you have a `defaultLocale` defined if using **prefix_except_default**, **prefix_and_default** or **no_prefix** strategy.
+
 
 ```js
 // nuxt.config.js
@@ -163,17 +163,16 @@ Localized routes are full URIs, so keep in mind that:
 
 #### Example 1
 
-Say you have some nested pages like:
+Say you have some nested page like:
 
 ```asciidoc
 pages/
 ├── _nested/
 ├──── _route/
 ├────── index.vue
-├────── _.vue
 ```
 
-Here's how you would configure these particular pages in the configuration:
+Here's how you would configure this particular page in the configuration:
 
 ```js
 // nuxt.config.js
@@ -183,9 +182,6 @@ Here's how you would configure these particular pages in the configuration:
   pages: {
     '_nested/_route/index': {
       en: '/mycustompath/:nested/:route?' // Params need to be put back here as you would with vue-router
-    },
-    '_nested/_route/_': {
-      en: '/mycustompath/:nested/*' // * will match the entire route path after /:nested/
     }
   }
 }]

@@ -23,10 +23,8 @@ Aquí están todas las opciones disponibles al configurar el módulo y sus valor
   //   - code of ISO 639-1 and code of ISO 3166-1 alpha-2, with a hyphen (e.g. 'en-US')
   locales: [],
 
-  // The app's default locale.
-  // When using 'prefix_except_default' strategy, URLs for this locale won't have a prefix.
-  // It's recommended to set this to some locale regardless of chosen strategy, as it will be
-  // used as a locale fallback to use when navigating to a non-existent route.
+  // The app's default locale, URLs for this locale won't have a prefix if
+  // strategy is prefix_except_default
   defaultLocale: null,
 
   // Separator used to generated routes name for each locale, you shouldn't
@@ -70,7 +68,7 @@ Aquí están todas las opciones disponibles al configurar el módulo y sus valor
     // Set to false to redirect every time
     useCookie: true,
     // Set to override the default domain of the cookie. Defaults to host of the site.
-    cookieDomain: null,
+    cookieDomain: null
     // Cookie name
     cookieKey: 'i18n_redirected',
     // Set to always redirect to value stored in the cookie, not just once
@@ -93,8 +91,6 @@ Aquí están todas las opciones disponibles al configurar el módulo y sus valor
   // Fallback base URL to use as prefix for alternate URLs in hreflang tags.
   // By default VueRouter's base URL will be used and only if that is not available,
   // fallback URL will be used.
-  // Can also be a function that will be passed a Nuxt context as a parameter and
-  // should return a string. Useful to make base url dynamic based on request headers.
   baseUrl: '',
 
   // By default a store module is registered and kept in sync with the

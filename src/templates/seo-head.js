@@ -1,5 +1,6 @@
 import VueMeta from 'vue-meta'
 import {
+  baseUrl,
   COMPONENT_OPTIONS_KEY,
   LOCALE_CODE_KEY,
   LOCALE_ISO_KEY,
@@ -33,15 +34,15 @@ export const nuxtI18nSeo = function () {
     metaObject.htmlAttrs.lang = currentLocaleIso // TODO: simple lang or "specific" lang with territory?
   }
 
-  addHreflangLinks.bind(this)(this.$i18n.locales, this.$i18n.__baseUrl, metaObject.link)
-  addCanonicalLinks.bind(this)(currentLocale, this.$i18n.__baseUrl, metaObject.link)
+  addHreflangLinks.bind(this)(this.$i18n.locales, metaObject.link)
+  addCanonicalLinks.bind(this)(currentLocale, metaObject.link)
   addCurrentOgLocale.bind(this)(currentLocale, currentLocaleIso, metaObject.meta)
   addAlternateOgLocales.bind(this)(this.$i18n.locales, currentLocaleIso, metaObject.meta)
 
   return metaObject
 }
 
-function addHreflangLinks (locales, baseUrl, link) {
+function addHreflangLinks (locales, link) {
   if (strategy === STRATEGIES.NO_PREFIX) {
     return
   }
@@ -76,7 +77,7 @@ function addHreflangLinks (locales, baseUrl, link) {
   }
 }
 
-function addCanonicalLinks (currentLocale, baseUrl, link) {
+function addCanonicalLinks (currentLocale, link) {
   if (strategy !== STRATEGIES.PREFIX_AND_DEFAULT) {
     return
   }

@@ -3,6 +3,9 @@ const packageJson = require('../../package.json')
 // Internals
 exports.MODULE_NAME = packageJson.name
 exports.ROOT_DIR = 'nuxt-i18n'
+exports.HELPERS_PATH = 'helpers/'
+exports.PLUGINS_DIR = 'plugins/'
+exports.TEMPLATES_DIR = 'templates/'
 exports.LOCALE_CODE_KEY = 'code'
 exports.LOCALE_ISO_KEY = 'iso'
 exports.LOCALE_DOMAIN_KEY = 'domain'
@@ -23,7 +26,7 @@ exports.DEFAULT_OPTIONS = {
   vueI18n: {},
   vueI18nLoader: false,
   locales: [],
-  defaultLocale: '',
+  defaultLocale: null,
   routesNameSeparator: '___',
   defaultLocaleRouteNameSuffix: 'default',
   strategy: STRATEGIES.PREFIX_EXCEPT_DEFAULT,
@@ -35,7 +38,7 @@ exports.DEFAULT_OPTIONS = {
     cookieDomain: null,
     cookieKey: 'i18n_redirected',
     alwaysRedirect: false,
-    fallbackLocale: ''
+    fallbackLocale: null
   },
   differentDomains: false,
   seo: false,
