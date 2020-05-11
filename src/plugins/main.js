@@ -201,9 +201,9 @@ export default async (context) => {
       const { route } = context;
       if (route && !isSameRoute(route, redirectRoute)) {
         // #### CUSTOM CODE
-        if (process.client) {
-          // context.app.router.replace({path: redirectPath})
-          window.location.replace(redirectPath);
+        if (process.client && process.static) {
+          context.app.router.replace({ path: redirectPath });
+          // window.location.replace(redirectPath);
         } else {
           redirect(redirectPath);
         }
